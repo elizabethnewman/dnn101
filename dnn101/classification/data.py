@@ -161,22 +161,22 @@ class DNN101DataClassificationSKLearn(DNN101Data):
 
             f_pred = net(x_grid)
             y_pred = self._get_labels(f_pred)
-            plt.imshow(y_pred.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+            img = plt.imshow(y_pred.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
             if x_pts is not None:
                 plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.colorbar()
+            plt.colorbar(img, fraction=0.046, pad=0.04))
             plt.title('prediction')
 
 
 def plot_prediction(y_grid, domain, x_pts=None, y_pts=None, title='prediction'):
-    plt.imshow(y_grid.T, extent=domain, origin='lower')
+    img = plt.imshow(y_grid.T, extent=domain, origin='lower')
     if x_pts is not None:
         plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
     plt.xlabel('x1')
     plt.ylabel('x2')
-    plt.colorbar()
+    plt.colorbar(img, fraction=0.046, pad=0.04)
     plt.title(title)
 
 
