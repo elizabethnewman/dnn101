@@ -31,16 +31,16 @@ class DNN101DataClassification2D(DNN101Data):
 
         return y.view(-1)
 
-    def generate_data(self, n_train=80, n_val=10, n_test=10):
-        x1 = self.domain[0] + (self.domain[1] - self.domain[0]) * torch.rand(n_train + n_val + n_test)
-        x2 = self.domain[2] + (self.domain[3] - self.domain[2]) * torch.rand(n_train + n_val + n_test)
+    def generate_data(self, n_samples=100):
+        x1 = self.domain[0] + (self.domain[1] - self.domain[0]) * torch.rand(n_samples)
+        x2 = self.domain[2] + (self.domain[3] - self.domain[2]) * torch.rand(n_samples)
         x = torch.cat((x1.reshape(-1, 1), x2.reshape(-1, 1)), dim=1)
 
         f_true = self.f(x)
         f_true += self.noise_level * torch.randn_like(f_true)
         y = self._get_labels(f_true)
 
-        return self.split_data(x, y, n_train, n_val)
+        return x, y
 
     def plot_ground_truth(self):
         # choose class levels
@@ -55,9 +55,6 @@ class DNN101DataClassification2D(DNN101Data):
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.colorbar()
-
-
-
 
     def plot_data(self, *args):
         plot_order = ['train', 'val', 'test']
@@ -109,6 +106,7 @@ class DNN101DataClassification2D(DNN101Data):
 
         # TODO: difference image
 
+
 class DNN101DataClassificationSKLearn(DNN101Data):
     def __init__(self, name: str = 'blobs', **kwargs):
         super(DNN101DataClassificationSKLearn, self).__init__()
@@ -117,13 +115,13 @@ class DNN101DataClassificationSKLearn(DNN101Data):
         self.n_classes = None
         self.kwargs = kwargs
 
-    def generate_data(self, n_train=80, n_val=10, n_test=10):
+    def generate_data(self, n_samples=100):
         if self.name == 'circles':
-            (x, y) = datasets.make_circles(n_samples=n_train + n_val + n_test, **self.kwargs)
+            (x, y) = datasets.make_circles(n_samples=n_samples, **self.kwargs)
         elif self.name == 'moons':
-            (x, y) = datasets.make_moons(n_samples=n_train + n_val + n_test, **self.kwargs)
+            (x, y) = datasets.make_moons(n_samples=n_samples, **self.kwargs)
         else:
-            (x, y) = datasets.make_blobs(n_samples=n_train + n_val + n_test, **self.kwargs)
+            (x, y) = datasets.make_blobs(n_samples=n_samples, **self.kwargs)
 
         a = torch.from_numpy(x.min(axis=0)) - 0.5
         b = torch.from_numpy(x.max(axis=0)) + 0.5
@@ -137,14 +135,7 @@ class DNN101DataClassificationSKLearn(DNN101Data):
         y = torch.from_numpy(y).to(torch.int64)
         self.n_classes = len(y.unique())
 
-        # split into training, validation, and test data
-        idx = torch.randperm(x.shape[0])   # shuffle data
-
-        x_train, y_train = x[idx[:n_train]], y[idx[:n_train]]
-        x_val, y_val = x[idx[n_train:n_train + n_val]], y[idx[n_train:n_train + n_val]]
-        x_test, y_test = x[idx[n_train + n_val:]], y[idx[n_train + n_val:]]
-
-        return (x_train, y_train), (x_val, y_val), (x_test, y_test)
+        return x, y
 
     def _get_labels(self, f_pts):
         return f_pts.argmax(dim=1).view(-1)
@@ -213,7 +204,8 @@ if __name__ == "__main__":
     f = lambda x: torch.sin(x[:, 0]) + torch.cos(x[:, 1])
 
     data2D = DNN101DataClassification2D(f, 3)
-    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.generate_data(n_train=2000)
+    x, y = data2D.generate_data(n_samples=2000)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y)
 
     data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
     plt.show()
@@ -222,7 +214,8 @@ if __name__ == "__main__":
     plt.show()
 
     data2D = DNN101DataClassificationSKLearn('blobs')
-    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.generate_data(n_train=2000)
+    x, y = data2D.generate_data(n_samples=2000)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
 
     data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
     plt.show()
