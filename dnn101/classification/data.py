@@ -51,10 +51,10 @@ class DNN101DataClassification2D(DNN101Data):
 
         my_colors = mpl.colormaps['viridis'].colors
         my_colors = my_colors[::(len(my_colors) // (len(self.cutoffs) - 1))]
-        plt.imshow(y_grid.view(x1_grid.shape).T, origin='lower', extent=self.domain)
+        img = plt.imshow(y_grid.view(x1_grid.shape).T, origin='lower', extent=self.domain)
         plt.xlabel('x1')
         plt.ylabel('x2')
-        plt.colorbar()
+        plt.colorbar(img, fraction=0.046, pad=0.04)
 
     def plot_data(self, *args):
         plot_order = ['train', 'val', 'test']
@@ -85,7 +85,7 @@ class DNN101DataClassification2D(DNN101Data):
                 else:
                     y_grid = f_grid.argmax(dim=1)
 
-            plt.imshow(y_grid.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+            img = plt.imshow(y_grid.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
 
             if x_pts is not None:
                 # f_pts = self.f(x_pts)
@@ -94,7 +94,7 @@ class DNN101DataClassification2D(DNN101Data):
 
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.colorbar()
+            plt.colorbar(img, fraction=0.046, pad=0.04)
             plt.title(title)
 
     def plot_prediction2(self, net=None, x_pts=None):
