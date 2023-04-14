@@ -8,7 +8,7 @@ Deep learning has revolutionized data science and has given state-of-the-art res
 # Installation
 
 ```console
-python -m pip install git+https://github.com/elizabethnewman/dnn101_clean.git
+python -m pip install git+https://github.com/elizabethnewman/dnn101.git
 ```
 
 # Getting Started
