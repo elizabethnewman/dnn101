@@ -62,6 +62,7 @@ class DNN101DataRegression2D(DNN101DataRegression):
 
         plt.xlabel('x')
         plt.ylabel('y')
+        plt.colorbar()
         plt.legend()
 
     def plot_prediction(self, net, *args):
