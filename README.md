@@ -1,4 +1,4 @@
-# dnn101_clean
+# dnn101
 A hands-on tutorial of deep neural networks for mathematicians
 
 # Introduction
