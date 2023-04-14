@@ -166,7 +166,7 @@ class DNN101DataClassificationSKLearn(DNN101Data):
                 plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.colorbar(img, fraction=0.046, pad=0.04))
+            plt.colorbar(img, fraction=0.046, pad=0.04)
             plt.title('prediction')
 
 
