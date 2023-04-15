@@ -92,6 +92,8 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
         # points on the boundary
         n_bd = math.floor(p_bd * n_int)
         xt_bd = self.domain.generate_boundary_points(n_bd)
+        xt_init = xt_bd[:xt_bd.shape[0] // 4]
+        xt_bd = xt_bd[xt_bd.shape[0] // 2:]
         g = self.g(xt_bd).view(-1, 1)
 
         n_tot = xt_bd.shape[0]
@@ -102,12 +104,7 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
 
 
         # true initial condition
-        n_init = math.floor(p_init * n_int)
-        x_init = self.domain.domain[0] + (self.domain.domain[1] - self.domain.domain[0]) * torch.rand(n_init)
-        xt_init = torch.cat((x_init.reshape(-1, 1),
-                             self.domain.domain[2] * torch.ones_like(x_init).reshape(-1, 1)),
-                            dim=1)
-        g_init = self.g_init(x_init)
+        g_init = self.g_init(xt_init)
 
         n_tot = xt_init.shape[0]
         p_train = n_train / n_int
@@ -117,13 +114,13 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
 
         data_train = ((x_int_train, f_train), (x_bd_train, g_train), (x_init_train, g_init_train))
         data_val = ((x_int_val, f_val), (x_bd_val, g_val), (x_init_val, g_init_val))
-        data_test =  ((x_int_test, f_test), (x_bd_test, g_test), (x_init_test, g_init_test))
+        data_test = ((x_int_test, f_test), (x_bd_test, g_test), (x_init_test, g_init_test))
         return data_train, data_val, data_test
 
     def plot_data(self, *args, label='train', marker='o'):
         # data x_int, y_int, x_bd, y_bd
-        color_order = ['b', 'r']
-        label_order = [': int', ': bd']
+        color_order = ['b', 'r', 'g']
+        label_order = [': int', ': bd', ': init']
         for count, i in enumerate(range(0, len(args), 2)):
             x = args[i]
             y = args[i + 1]
@@ -148,28 +145,28 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
             if self.u_true is not None:
                 plt.subplot(1, 3, 1)
                 plt.contourf(x1_grid, x2_grid, self.u_true(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
+                plt.xlabel('x')
+                plt.ylabel('t')
                 plt.colorbar()
                 plt.title('true')
 
                 plt.subplot(1, 3, 2)
                 plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
+                plt.xlabel('x')
+                plt.ylabel('t')
                 plt.colorbar()
                 plt.title('approx')
 
                 plt.subplot(1, 3, 3)
                 plt.contourf(x1_grid, x2_grid, torch.abs(net(x_grid).reshape(-1) - self.u_true(x_grid).reshape(-1)).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
+                plt.xlabel('x')
+                plt.ylabel('t')
                 plt.colorbar()
                 plt.title('abs. diff.')
             else:
                 plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
+                plt.xlabel('x')
+                plt.ylabel('t')
                 plt.colorbar()
                 plt.title('approx')
 
@@ -198,3 +195,26 @@ def pde_libraryHeatEquation1D(fctn_num=0):
         raise ValueError('fctn_num = 0 for Heat Equation1D')
 
     return pde
+
+
+if __name__ == "__main__":
+    import torch.nn as nn
+
+    pde_setup = pde_libraryHeatEquation1D(0)
+    f_true = pde_setup['f']
+    g_true = pde_setup['g']
+    g_init = pde_setup['g_init']
+    u_true = pde_setup['u_true']
+
+    pde = DNN101DataPINNHeatEquation1D(f_true, g_true, g_init, domain=PDEDomainBox((-1, 1, 0, 10)), u_true=u_true)
+    (train_int, train_bd, train_init), (val_int, val_bd, val_init), (test_int, test_bd, test_init) = pde.generate_data()
+    pde.plot_data(*train_int, *train_bd, *train_init, marker='o', label='train')
+    pde.plot_data(*val_int, *val_bd, *val_init, marker='s', label='val')
+    pde.plot_data(*test_int, *test_bd, *test_init, marker='^', label='test')
+    plt.show()
+
+    net2D = nn.Sequential(nn.Linear(2, 10),
+                          nn.Tanh(),
+                          nn.Linear(10, 1))
+    pde.plot_prediction2(net2D)
+    plt.show()

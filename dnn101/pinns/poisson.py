@@ -175,3 +175,25 @@ def pde_libraryPoisson2D(fctn_num=0):
         raise ValueError('fctn_num = 0, 1, 2 for Poisson')
 
     return pde
+
+
+if __name__ == "__main__":
+    import torch.nn as nn
+
+    pde_setup = pde_libraryPoisson2D(1)
+    f_true = pde_setup['f']
+    g_true = pde_setup['g']
+    u_true = pde_setup['u_true']
+
+    pde = DNN101DataPINNPoisson2D(f_true, g_true, u_true=u_true)
+    (train_int, train_bd), (val_int, val_bd), (test_int, test_bd) = pde.generate_data()
+    pde.plot_data(*train_int, *train_bd, marker='o', label='train')
+    pde.plot_data(*val_int, *val_bd, marker='s', label='val')
+    pde.plot_data(*test_int, *test_bd, marker='^', label='test')
+    plt.show()
+
+    net2D = nn.Sequential(nn.Linear(2, 10),
+                          nn.Tanh(),
+                          nn.Linear(10, 1))
+    pde.plot_prediction2(net2D)
+    plt.show()
