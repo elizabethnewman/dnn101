@@ -48,11 +48,11 @@ def plot_convolution_filters(net, n_filters=4):
     stored_filters = []
     for p in net.children():
         if isinstance(p, torch.nn.Conv2d):
-            n = min(len(n_filters), p.weight.shape[0])
-            stored_filters.append(p.weight[n_filters[:n]].detach())
+            n = min(len(n_filters), p.weight.shape[0] * p.weight.shape[1])
+            stored_filters.append(p.weight.view(-1, p.weight.shape[2], p.weight.shape[3])[n_filters[:n]].detach())
 
     for i in range(len(stored_filters)):
         plt.subplot(1, len(stored_filters), i + 1)
         montage_array(stored_filters[i])
-    
+
     return None
