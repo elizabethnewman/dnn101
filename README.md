@@ -41,7 +41,7 @@ x, y = dataset.generate_data(n_train + n_val + n_test)
 dataset.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
 plt.show()
 ```
-![Regression Data](docs/figs/getting_started_regression_data.jpg)
+![Regression Data](docs/figs/getting_started_regression_data.png)
 
 # Organization
 
