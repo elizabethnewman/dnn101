@@ -125,8 +125,8 @@ mpl.rcParams['lines.linewidth'] = 8
 
 # show convergence of loss
 results = torch.tensor(results)
-plt.semilogy(results[:, 0], results[:, 2], linewidth=3, label='train')
-plt.semilogy(results[:, 0], results[:, 3], '--', linewidth=3, label='val')
+plt.semilogy(results[:, 0], results[:, 2], label='train')
+plt.semilogy(results[:, 0], results[:, 3], '--', label='val')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
