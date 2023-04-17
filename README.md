@@ -141,7 +141,7 @@ plt.show()
 
 # Organization
 
-See the dnn101 directory.
+See the ![dnn101](https://github.com/elizabethnewman/dnn101/tree/main/dnn101) directory.
 
 
 # Cite
