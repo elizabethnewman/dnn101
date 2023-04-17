@@ -65,32 +65,41 @@ class DNN101DataRegression2D(DNN101DataRegression):
         plt.colorbar()
         plt.legend()
 
-    def plot_prediction(self, net, *args):
+    def plot_prediction1(self, net=None, abs_diff=False):
         with torch.no_grad():
             x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
                                               torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
-            plt.subplot(1, 3, 1)
-            plt.contourf(x1_grid, x2_grid, self.f(x_grid).reshape(x1_grid.shape))
+            if net is None:
+                plt.contourf(x1_grid, x2_grid, self.f(x_grid).reshape(x1_grid.shape))
+
+            else:
+                if abs_diff is True:
+                    plt.contourf(x1_grid, x2_grid, torch.abs(self.f(x_grid).view(-1) - net(x_grid).view(-1)).reshape(x1_grid.shape))
+                else:
+                    plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
+
             plt.xlabel('x1')
             plt.ylabel('x2')
             plt.colorbar()
+
+    def plot_prediction(self, net, *args):
+        with torch.no_grad():
+            # x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
+            #                                   torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
+            # x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
+
+            plt.subplot(1, 3, 1)
+            self.plot_prediction1()
             plt.title('true')
 
             plt.subplot(1, 3, 2)
-            plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-            plt.xlabel('x1')
-            plt.ylabel('x2')
-            plt.colorbar()
+            self.plot_prediction1(net)
             plt.title('approx')
 
             plt.subplot(1, 3, 3)
-            plt.contourf(x1_grid, x2_grid,
-                         torch.abs(net(x_grid).reshape(-1) - self.f(x_grid).reshape(-1)).reshape(x1_grid.shape))
-            plt.xlabel('x1')
-            plt.ylabel('x2')
-            plt.colorbar()
+            self.plot_prediction1(net, abs_diff=True)
             plt.title('abs. diff.')
 
     def plot_prediction3D(self, net):

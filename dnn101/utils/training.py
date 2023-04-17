@@ -8,12 +8,12 @@ def evaluate(net, loss, data, device='cpu'):
         return evaluate_dataloader(net, loss, data, device=device)
 
 
-def train(net, loss, data, optimizer, batch_size=5, device='cpu'):
+def train(net, loss, data, optimizer, scheduler=None, batch_size=5, device='cpu'):
 
     if isinstance(data, tuple):
-        return train_data(net, loss, data[0], data[1], optimizer, batch_size=batch_size, device=device)
+        return train_data(net, loss, data[0], data[1], optimizer, scheduler=scheduler, batch_size=batch_size, device=device)
     else:
-        return train_dataloader(net, loss, data, optimizer, device=device)
+        return train_dataloader(net, loss, data, optimizer, scheduler=scheduler, device=device)
 
 
 def evaluate_data(net, loss, x, y, device='cpu'):
