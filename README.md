@@ -17,6 +17,7 @@ Let's generate a regression example!  First, we load the necessary python packag
 ```python
 import torch
 import torch.nn as nn
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from dnn101.regression import DNN101DataRegression1D
 from dnn101.utils import evaluate, train
@@ -119,6 +120,8 @@ epoch          running_loss   train_loss     val_loss
 
 Let's visualize how we did!
 ```python
+import matplotlib as mpl
+mpl.rcParams['lines.linewidth'] = 8
 
 # show convergence of loss
 results = torch.tensor(results)
