@@ -25,7 +25,7 @@ def evaluate_data(net, loss, x, y, device='cpu'):
     return phi.item(), 100 * (acc / x.shape[0])
 
 
-def train_data(net, loss, x, y, optimizer, batch_size=5, device='cpu'):
+def train_data(net, loss, x, y, optimizer, scheduler=None, batch_size=5, device='cpu'):
     n_samples = x.shape[0]
     shuffle_idx = torch.randperm(n_samples)
     n_batch = n_samples // batch_size
@@ -53,6 +53,10 @@ def train_data(net, loss, x, y, optimizer, batch_size=5, device='cpu'):
 
         # update (with optimizer rule)
         optimizer.step()
+
+        if scheduler is not None:
+            # adjust learning rate
+            scheduler.step()
 
     return running_loss / (n_batch * batch_size), 100 * (running_acc / (n_batch * batch_size))
 
