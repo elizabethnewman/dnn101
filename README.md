@@ -83,12 +83,15 @@ print_formats = '{:<15d}{:<15.4e}{:<15.4e}{:<15.4e}'
 loss_train, _  = evaluate(net, loss, (x_train, y_train))
 loss_val, _    = evaluate(net, loss, (x_val, y_val))
 results.append([-1, 0.0, loss_train, loss_val])
+
+# print results
+print((4 * '{:<15s}').format(*('epoch', 'running_loss', 'train_loss', 'val_loss')))
 print(print_formats.format(*results[-1]))
 
 # train!
 for epoch in range(max_epochs):
    # train for one epoch
-   loss_running, _ = train(net, loss, train_loader, optimizer)
+   loss_running, _ = train(net, loss, (x_train, y_train), optimizer)
    
    # re-evaluate performance
    loss_train, _  = evaluate(net, loss, (x_train, y_train))
@@ -98,15 +101,42 @@ for epoch in range(max_epochs):
    results.append([epoch, loss_running, loss_train, loss_val])
    print(print_formats.format(*results[-1]))
 ```
-Let's see how we did!
+```
+epoch          running_loss   train_loss     val_loss       
+-1             0.0000e+00     1.3555e+00     1.5617e+00     
+0              5.6766e-01     1.9153e-01     2.0998e-01     
+1              1.4074e-01     1.2020e-01     1.1166e-01     
+2              1.1279e-01     1.0566e-01     1.0281e-01     
+3              1.0026e-01     9.4029e-02     9.1510e-02     
+4              8.9837e-02     8.6137e-02     8.8997e-02     
+5              8.2493e-02     7.8756e-02     8.1213e-02     
+6              7.6469e-02     7.4168e-02     7.8977e-02     
+7              7.1664e-02     7.0144e-02     6.9784e-02     
+8              6.8621e-02     6.7552e-02     6.7584e-02     
+9              6.6032e-02     6.4600e-02     6.7844e-02 
+```
+
+
+Let's visualize how we did!
 ```python
 
 # show convergence of loss
 results = torch.tensor(results)
-plt.plot(results[:, 0], results[:, 2], label='train')
-plt.plot(results[:, 0], results[:, 3], label='val')
+plt.semilogy(results[:, 0], results[:, 2], linewidth=3, label='train')
+plt.semilogy(results[:, 0], results[:, 3], '--', linewidth=3, label='val')
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend()
+plt.show()
+
+# plot prediction vs. ground truth
 dataset.plot_prediction(net)
+plt.show()
 ```
+
+![Regression Loss](docs/figs/getting_started_regression_loss.png)
+
+![Regression Prediction](docs/figs/getting_started_regression_prediction.png)
 
 
 # Organization
