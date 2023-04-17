@@ -7,17 +7,17 @@ def montage_array(A, num_col=None, cmap='viridis', names=None):
     # assume A is a 3D tensor for now
     # A[i, :, :] is the i-th image
 
-    # assert A.ndim == 3, "Montage array only available for third-order tensors"
-    A = A.permute(2, 3, 1, 0)
+    assert A.ndim == 3, "Montage array only available for third-order tensors"
+    A = A.permute(1, 2, 0)
 
-    m1, m2, _, m3 = A.shape
+    m1, m2, m3 = A.shape
 
     if num_col is None:
         num_col = math.ceil(math.sqrt(m3))
 
     num_row = math.ceil(m3 / num_col)
 
-    C = torch.zeros([m1 * num_row, m2 * num_col, A.shape[2]])
+    C = torch.zeros([m1 * num_row, m2 * num_col])
 
     k = 0
     for p in range(0, C.shape[0], m1):
@@ -25,10 +25,17 @@ def montage_array(A, num_col=None, cmap='viridis', names=None):
             if k >= m3:
                 C[p:p + m1, q:q + m2] = torch.nan
                 break
-            C[p:p + m1, q:q + m2] = A[:, :, :, k]
+            C[p:p + m1, q:q + m2] = A[:, :, k]
             k += 1
 
     img = plt.imshow(C, cmap=cmap)
+
+    # grid lines
+    for i in range(0, C.shape[0] + 1, m1):
+        plt.hlines(y=i-0.5, xmin=-0.5, xmax=C.shape[0]-0.5, linewidth=8, color='w')
+    for i in range(0, C.shape[1] + 1, m2):
+        plt.vlines(x=i-0.5, ymin=-0.5, ymax=C.shape[1]-0.5, linewidth=8, color='w')
+
     plt.axis('off')
     # cb = plt.colorbar()
     cb = plt.colorbar(img, fraction=0.046, pad=0.04)
@@ -40,19 +47,33 @@ def montage_array(A, num_col=None, cmap='viridis', names=None):
     return img
 
 
-def plot_convolution_filters(net, n_filters=4):
+def plot_Conv2d_filters(net, n_filters=4):
 
     if isinstance(n_filters, int):
         n_filters = torch.arange(n_filters)
 
     stored_filters = []
-    for p in net.children():
-        if isinstance(p, torch.nn.Conv2d):
-            n = min(len(n_filters), p.weight.shape[0] * p.weight.shape[1])
-            stored_filters.append(p.weight.view(-1, p.weight.shape[2], p.weight.shape[3])[n_filters[:n]].detach())
+    if isinstance(net, torch.nn.Conv2d):
+        n = min(len(n_filters), net.weight.shape[0] * net.weight.shape[1])
+        stored_filters.append(net.weight.view(-1, net.weight.shape[2], net.weight.shape[3])[n_filters[:n]].detach())
+    else:
+        for p in net.children():
+            if isinstance(p, torch.nn.Conv2d):
+                n = min(len(n_filters), p.weight.shape[0] * p.weight.shape[1])
+                stored_filters.append(p.weight.view(-1, p.weight.shape[2], p.weight.shape[3])[n_filters[:n]].detach())
 
     for i in range(len(stored_filters)):
         plt.subplot(1, len(stored_filters), i + 1)
         montage_array(stored_filters[i])
 
     return None
+
+
+if __name__ == "__main__":
+    layer = torch.nn.Conv2d(5, 7, 11, 1)
+    plot_Conv2d_filters(layer, n_filters=9)
+    plt.show()
+
+    net = torch.nn.Sequential(torch.nn.Conv2d(5, 7, 11, 1), torch.nn.Conv2d(3, 1, 5, 2))
+    plot_Conv2d_filters(net)
+    plt.show()
