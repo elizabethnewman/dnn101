@@ -56,7 +56,7 @@ def montage_array(A, num_col=None, cmap='viridis', names=None):
     return img
 
 
-def plot_Conv2d_filters(net, n_filters=4):
+def plot_Conv2d_filters(net, n_filters=4, num_col=None):
 
     if isinstance(n_filters, int):
         n_filters = torch.arange(n_filters)
@@ -73,14 +73,14 @@ def plot_Conv2d_filters(net, n_filters=4):
 
     for i in range(len(stored_filters)):
         plt.subplot(1, len(stored_filters), i + 1)
-        montage_array(stored_filters[i])
+        montage_array(stored_filters[i], num_col=num_col)
 
     return None
 
 
 if __name__ == "__main__":
     layer = torch.nn.Conv2d(5, 7, 11, 1)
-    plot_Conv2d_filters(layer, n_filters=9)
+    plot_Conv2d_filters(layer, n_filters=10, num_col=5)
     plt.show()
 
     net = torch.nn.Sequential(torch.nn.Conv2d(5, 7, 11, 1), torch.nn.Conv2d(3, 1, 5, 2))
