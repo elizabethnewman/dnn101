@@ -13,12 +13,18 @@ python -m pip install git+https://github.com/elizabethnewman/dnn101.git
 
 # Getting Started
 
-Let's generate a regression example!  First, we load the necessary packages and generate the data.
-
+Let's generate a regression example!  First, we load the necessary python packages.
 ```python
-from dnn101.regression import DNN101DataRegression1D
 import torch
+import torch.nn as nn
 import matplotlib.pyplot as plt
+from dnn101.regression import DNN101DataRegression1D
+from dnn101.utils import evaluate, train
+```
+Next, we generate the data.
+```python
+# for reproducibility
+torch.manual_seed(123)
 
 # data parameters
 n_train = 1000                      # number of training points
@@ -42,6 +48,66 @@ dataset.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
 plt.show()
 ```
 ![Regression Data](docs/figs/getting_started_regression_data.png)
+
+Let's setup a two-layer network, loss function, and optimizer.
+```python
+# for reproducibility
+torch.manual_seed(456)
+
+# training parameters
+width      = 10      # number of hidden neurons (larger should be more expressive)
+max_epochs = 10      # maximum number of epochs
+batch_size = 5       # batch size for mini-batch stochastic optimization
+
+# create network
+width = 10
+net = nn.Sequential(
+    nn.Linear(x_train.shape[1], width),
+    nn.Tanh(),
+    nn.Linear(width, y_train.shape[1])
+)
+
+# choose loss function
+loss = torch.nn.MSELoss()
+
+# choose optimizer
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+```
+Let's train!
+```python
+# store results (epoch, running_loss, train_loss, validation_loss)
+results = []
+print_formats = '{:<15d}{:<15.4e}{:<15.4e}{:<15.4e}'
+
+# initial evaluation
+loss_train, _  = evaluate(net, loss, (x_train, y_train))
+loss_val, _    = evaluate(net, loss, (x_val, y_val))
+results.append([-1, 0.0, loss_train, loss_val])
+print(print_formats.format(*results[-1]))
+
+# train!
+for epoch in range(max_epochs):
+   # train for one epoch
+   loss_running, _ = train(net, loss, train_loader, optimizer)
+   
+   # re-evaluate performance
+   loss_train, _  = evaluate(net, loss, (x_train, y_train))
+   loss_val, _    = evaluate(net, loss, (x_val, y_val))
+   
+   # store results
+   results.append([epoch, loss_running, loss_train, loss_val])
+   print(print_formats.format(*results[-1]))
+```
+Let's see how we did!
+```python
+
+# show convergence of loss
+results = torch.tensor(results)
+plt.plot(results[:, 0], results[:, 2], label='train')
+plt.plot(results[:, 0], results[:, 3], label='val')
+dataset.plot_prediction(net)
+```
+
 
 # Organization
 
