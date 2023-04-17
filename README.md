@@ -13,12 +13,18 @@ python -m pip install git+https://github.com/elizabethnewman/dnn101.git
 
 # Getting Started
 
-Let's generate a regression example!  First, we load the necessary packages and generate the data.
-
+Let's generate a regression example!  First, we load the necessary python packages.
 ```python
-from dnn101.regression import DNN101DataRegression1D
 import torch
+import torch.nn as nn
 import matplotlib.pyplot as plt
+from dnn101.regression import DNN101DataRegression1D
+from dnn101.utils import evaluate, train
+```
+Next, we generate the data.
+```python
+# for reproducibility
+torch.manual_seed(123)
 
 # data parameters
 n_train = 1000                      # number of training points
@@ -41,11 +47,101 @@ x, y = dataset.generate_data(n_train + n_val + n_test)
 dataset.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
 plt.show()
 ```
-![Regression Data](docs/figs/getting_started_regression_data.jpg)
+![Regression Data](docs/figs/getting_started_regression_data.png)
+
+Let's setup a two-layer network, loss function, and optimizer.
+```python
+# for reproducibility
+torch.manual_seed(456)
+
+# training parameters
+width      = 10      # number of hidden neurons (larger should be more expressive)
+max_epochs = 10      # maximum number of epochs
+batch_size = 5       # batch size for mini-batch stochastic optimization
+
+# create network
+width = 10
+net = nn.Sequential(
+    nn.Linear(x_train.shape[1], width),
+    nn.Tanh(),
+    nn.Linear(width, y_train.shape[1])
+)
+
+# choose loss function
+loss = torch.nn.MSELoss()
+
+# choose optimizer
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
+```
+Let's train!
+```python
+# store results (epoch, running_loss, train_loss, validation_loss)
+results = []
+print_formats = '{:<15d}{:<15.4e}{:<15.4e}{:<15.4e}'
+
+# initial evaluation
+loss_train, _  = evaluate(net, loss, (x_train, y_train))
+loss_val, _    = evaluate(net, loss, (x_val, y_val))
+results.append([-1, 0.0, loss_train, loss_val])
+
+# print results
+print((4 * '{:<15s}').format(*('epoch', 'running_loss', 'train_loss', 'val_loss')))
+print(print_formats.format(*results[-1]))
+
+# train!
+for epoch in range(max_epochs):
+   # train for one epoch
+   loss_running, _ = train(net, loss, (x_train, y_train), optimizer)
+   
+   # re-evaluate performance
+   loss_train, _  = evaluate(net, loss, (x_train, y_train))
+   loss_val, _    = evaluate(net, loss, (x_val, y_val))
+   
+   # store results
+   results.append([epoch, loss_running, loss_train, loss_val])
+   print(print_formats.format(*results[-1]))
+```
+```
+epoch          running_loss   train_loss     val_loss       
+-1             0.0000e+00     1.3555e+00     1.5617e+00     
+0              5.6766e-01     1.9153e-01     2.0998e-01     
+1              1.4074e-01     1.2020e-01     1.1166e-01     
+2              1.1279e-01     1.0566e-01     1.0281e-01     
+3              1.0026e-01     9.4029e-02     9.1510e-02     
+4              8.9837e-02     8.6137e-02     8.8997e-02     
+5              8.2493e-02     7.8756e-02     8.1213e-02     
+6              7.6469e-02     7.4168e-02     7.8977e-02     
+7              7.1664e-02     7.0144e-02     6.9784e-02     
+8              6.8621e-02     6.7552e-02     6.7584e-02     
+9              6.6032e-02     6.4600e-02     6.7844e-02 
+```
+
+
+Let's visualize how we did!
+```python
+
+# show convergence of loss
+results = torch.tensor(results)
+plt.semilogy(results[:, 0], results[:, 2], linewidth=3, label='train')
+plt.semilogy(results[:, 0], results[:, 3], '--', linewidth=3, label='val')
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.legend()
+plt.show()
+
+# plot prediction vs. ground truth
+dataset.plot_prediction(net)
+plt.show()
+```
+
+![Regression Loss](docs/figs/getting_started_regression_loss.png)
+
+![Regression Prediction](docs/figs/getting_started_regression_prediction.png)
+
 
 # Organization
 
-Each directory has focuses on a different task for which deep learning can be used (and used well!).  The goal is to learn something new with each task.  
+Each directory has focuses on a different task for which deep learning can be used (and used well!).  The goal is to learn something new with each task.  Each directory contains at least one corresponding Google Colab notebook and methods to generate and visualize synthetic data.
 
 * ```regression```: one- and two-dimensional function approximation tasks
     * Goals: construct a neural network from data to done for function approximation (a good place to start for beginners)
@@ -57,6 +153,7 @@ Each directory has focuses on a different task for which deep learning can be us
     *  Goals: learn how to code PINNs using automatic differentation and how to use the L-BFGS optimizers in PyTorch (a good place to start if you have some knowledge of PyTorch and DNNs already)
 * ```dynamics```: residual neural networks
     * Goals: learn how to implement new PyTorch layers and explore DNN stability (this is a more exploratory task)
+* ```utils```: helpful functionality for all directories
 
 
 # Cite
