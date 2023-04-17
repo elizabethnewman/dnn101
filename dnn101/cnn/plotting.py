@@ -60,29 +60,58 @@ def plot_Conv2d_filters(net, n_filters=4, num_col=None):
 
     if isinstance(n_filters, int):
         n_filters = torch.arange(n_filters)
+    n = len(n_filters)
 
     stored_filters = []
     if isinstance(net, torch.nn.Conv2d):
-        n = min(len(n_filters), net.weight.shape[0] * net.weight.shape[1])
-        stored_filters.append(net.weight.view(-1, net.weight.shape[2], net.weight.shape[3])[n_filters[:n]].detach())
+        stored_filters.append(net.weight.detach())
     else:
         for p in net.children():
             if isinstance(p, torch.nn.Conv2d):
-                n = min(len(n_filters), p.weight.shape[0] * p.weight.shape[1])
-                stored_filters.append(p.weight.view(-1, p.weight.shape[2], p.weight.shape[3])[n_filters[:n]].detach())
+                stored_filters.append(p.weight.detach())
 
     for i in range(len(stored_filters)):
         plt.subplot(1, len(stored_filters), i + 1)
-        montage_array(stored_filters[i], num_col=num_col)
+        w = stored_filters[i]
+        w = w.view(-1, w.shape[2], w.shape[3])
+        montage_array(w[n_filters[:min(n, w.shape[0])]], num_col=num_col)
 
-    return None
+    return stored_filters
+
+
+def plot_CNN_features(net, x, n_features=4, num_col=None):
+    # x is single image 1 x C x H x N
+    if isinstance(n_features, int):
+        n_features = torch.arange(n_features)
+    n = len(n_features)
+    N, C, H, W = x.shape
+
+
+    stored_features = [x.detach()]
+
+    for p in net.children():
+        x = p(x)
+        if isinstance(p, torch.nn.Conv2d):
+            stored_features.append(x.detach())
+
+    for i in range(len(stored_features)):
+        plt.subplot(1, len(stored_features), i + 1)
+        x = stored_features[i]
+        x = x.view(-1, x.shape[2], x.shape[3])
+        montage_array(x[:min(n, x.shape[0])], num_col=num_col)
+
+    return stored_features
 
 
 if __name__ == "__main__":
     layer = torch.nn.Conv2d(5, 7, 11, 1)
-    plot_Conv2d_filters(layer, n_filters=10, num_col=5)
-    plt.show()
+    # plot_Conv2d_filters(layer, n_filters=10, num_col=5)
+    # plt.show()
 
-    net = torch.nn.Sequential(torch.nn.Conv2d(5, 7, 11, 1), torch.nn.Conv2d(3, 1, 5, 2))
-    plot_Conv2d_filters(net)
+    net = torch.nn.Sequential(torch.nn.Conv2d(5, 7, 3, 1), torch.nn.Conv2d(7, 2, 5, 2))
+    # plot_Conv2d_filters(net)
+    # plt.show()
+
+    x = torch.randn(1, 5, 28, 28)
+    plot_CNN_features(net, x)
     plt.show()

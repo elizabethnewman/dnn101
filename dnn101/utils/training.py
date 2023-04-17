@@ -76,7 +76,7 @@ def evaluate_dataloader(net, loss, data_loader, device='cpu'):
     return phi.item() / n_samples, 100 * (acc.item() / n_samples)
 
 
-def train_dataloader(net, loss, data_loader, optimizer, device='cpu'):
+def train_dataloader(net, loss, data_loader, optimizer, scheduler=None, device='cpu'):
     n_samples = 0
     batch_size = data_loader.batch_size
     running_loss = 0.0
@@ -102,5 +102,9 @@ def train_dataloader(net, loss, data_loader, optimizer, device='cpu'):
 
         # update (with optimizer rule)
         optimizer.step()
+
+        if scheduler is not None:
+            # adjust learning rate
+            scheduler.step()
 
     return running_loss / n_samples, 100 * (running_acc / n_samples)
