@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from hessQuik.utils import peaks
 import sklearn.datasets as datasets
+from copy import deepcopy
 
 
 class DNN101DataClassification2D(DNN101Data):
@@ -24,10 +25,13 @@ class DNN101DataClassification2D(DNN101Data):
         self.cutoffs = min_F + h * torch.arange(1, n_classes)
 
     def _get_labels(self, f_pts):
-        y = torch.zeros(f_pts.numel(), dtype=torch.int64)
-        for i in range(1, self.n_classes - 1):
-            y[(f_pts.view(-1) > self.cutoffs[i - 1]) * (f_pts.view(-1) <= self.cutoffs[i])] = i
-        y[(f_pts.view(-1) > self.cutoffs[-1])] = self.n_classes - 1
+        if f_pts.ndim < 2 or f_pts.shape[1] == 1:
+            y = torch.zeros(f_pts.numel(), dtype=torch.int64)
+            for i in range(1, self.n_classes - 1):
+                y[(f_pts.view(-1) > self.cutoffs[i - 1]) * (f_pts.view(-1) <= self.cutoffs[i])] = i
+            y[(f_pts.view(-1) > self.cutoffs[-1])] = self.n_classes - 1
+        else:
+            y = f_pts.argmax(dim=1).view(-1)
 
         return y.view(-1)
 
@@ -106,6 +110,25 @@ class DNN101DataClassification2D(DNN101Data):
 
         # TODO: difference image
 
+    def plot_propagated_features(self, net, z, y):
+        z1_grid, z2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
+                                          torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
+        z_grid = torch.cat((z1_grid.reshape(-1, 1), z2_grid.reshape(-1, 1)), dim=1)
+
+        # propagate through all but final layer (output features)
+        for i in range(len(net) - 1):
+            z = net[i](z)
+            z_grid = net[i](z_grid)
+
+        z_labels = self._get_labels(net[-1](z_grid))
+
+        # plot first two columns
+        for i in range(self.n_classes):
+            plt.scatter(z[y == i, 0].detach(), z[y == i, 1].detach())
+
+        # plt.imshow(z_labels.reshape(z1_grid.shape).T, origin='lower', extent=self.domain)
+        plt.contourf(z1_grid, z2_grid, z_labels.reshape(z1_grid.shape))
+        plt.show()
 
 class DNN101DataClassificationSKLearn(DNN101Data):
     def __init__(self, name: str = 'blobs', **kwargs):
@@ -213,12 +236,15 @@ if __name__ == "__main__":
     data2D.plot_prediction2(net2D, x_test)
     plt.show()
 
-    data2D = DNN101DataClassificationSKLearn('blobs')
-    x, y = data2D.generate_data(n_samples=2000)
-    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
-
-    data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    data2D.plot_propagated_features(net2D, x_test, y_test)
     plt.show()
 
-    data2D.plot_prediction(net2D, x_test)
-    plt.show()
+    # data2D = DNN101DataClassificationSKLearn('blobs')
+    # x, y = data2D.generate_data(n_samples=2000)
+    # (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
+    #
+    # data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    # plt.show()
+    #
+    # data2D.plot_prediction(net2D, x_test)
+    # plt.show()
