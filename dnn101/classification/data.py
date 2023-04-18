@@ -118,9 +118,11 @@ class DNN101DataClassification2D(DNN101Data):
         # propagate through all but final layer (output features)
         for i in range(len(net) - 1):
             z = net[i](z)
-            z_grid = net[i](z_grid)
+            # z_grid = net[i](z_grid)
 
-        z_labels = self._get_labels(net[-1](z_grid))
+        k = net[-1].weight.shape[1] - z_grid.shape[1]
+        tmp = torch.cat((z_grid, torch.zeros(z_grid.shape[0], k)), dim=1)
+        z_labels = self._get_labels(net[-1](tmp))
 
         # plot first two columns
         for i in range(self.n_classes):
