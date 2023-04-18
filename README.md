@@ -14,9 +14,9 @@ python -m pip install git+https://github.com/elizabethnewman/dnn101.git
 
 # Jupyter Notebook Tutorials
 
-* [Tutorial: Regression](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb)
+* [1D and 2D Regression](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb)
 
-* [Tutorial: Classification](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb)
+* [2D Classification](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb)
 
 
 # Getting Started
