@@ -116,20 +116,25 @@ class DNN101DataClassification2D(DNN101Data):
         z_grid = torch.cat((z1_grid.reshape(-1, 1), z2_grid.reshape(-1, 1)), dim=1)
 
         # propagate through all but final layer (output features)
-        for i in range(len(net) - 1):
-            z = net[i](z)
+
             # z_grid = net[i](z_grid)
 
         k = net[-1].weight.shape[1] - z_grid.shape[1]
         tmp = torch.cat((z_grid, torch.zeros(z_grid.shape[0], k)), dim=1)
         z_labels = self._get_labels(net[-1](tmp))
 
+        # plt.imshow(z_labels.reshape(z1_grid.shape).T, origin='lower', extent=self.domain)
+        tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
+        plt.contourf(z1_grid, z2_grid, z_labels.reshape(z1_grid.shape), cmap=cmap, alpha=0.5)
+
+        for i in range(len(net) - 1):
+            z = net[i](z)
+
         # plot first two columns
         for i in range(self.n_classes):
             plt.scatter(z[y == i, 0].detach(), z[y == i, 1].detach())
 
-        # plt.imshow(z_labels.reshape(z1_grid.shape).T, origin='lower', extent=self.domain)
-        plt.contourf(z1_grid, z2_grid, z_labels.reshape(z1_grid.shape))
         plt.show()
 
 class DNN101DataClassificationSKLearn(DNN101Data):
