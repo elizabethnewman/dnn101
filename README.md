@@ -146,6 +146,8 @@ plt.show()
 
 * [Tutorial: Regression](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/regression/DNN101_Regression.ipynb)
 
+* [Tutorial: Classification](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/classification/DNN101_Classification.ipynb)
+
 See the [dnn101](https://github.com/elizabethnewman/dnn101/tree/main/dnn101) for more details.
 
 # Contributing
