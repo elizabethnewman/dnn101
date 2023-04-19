@@ -19,7 +19,7 @@ def train(net, loss, data, optimizer, scheduler=None, batch_size=5, device='cpu'
 def evaluate_data(net, loss, x, y, device='cpu'):
     with torch.no_grad():
         y_hat = net(x.to(device))
-        phi = loss(y_hat, y.to(device))
+        phi = loss(y_hat, y.view_as(y_hat).to(device))
         acc = y_hat.argmax(dim=1).eq(y.view(-1)).sum()
 
     return phi.item(), 100 * (acc.item() / x.shape[0])
@@ -44,7 +44,7 @@ def train_data(net, loss, x, y, optimizer, scheduler=None, batch_size=5, device=
         yb_hat = net(xb)
 
         # evaluate (with average loss)
-        phi = loss(yb_hat, yb)
+        phi = loss(yb_hat, yb.view_as(yb_hat))
         running_loss += batch_size * phi.item()
         running_acc += yb_hat.argmax(dim=1).eq(yb.view(-1)).sum()
 
@@ -69,7 +69,7 @@ def evaluate_dataloader(net, loss, data_loader, device='cpu'):
         for xb, yb in data_loader:
             xb, yb = xb.to(device), yb.to(device)
             yb_hat = net(xb)
-            phi += batch_size * loss(yb_hat, yb)
+            phi += batch_size * loss(yb_hat, yb.view_as(yb_hat))
             acc += yb_hat.argmax(dim=1).eq(yb.view(-1)).sum()
             n_samples += batch_size
 
@@ -93,7 +93,7 @@ def train_dataloader(net, loss, data_loader, optimizer, scheduler=None, device='
         yb_hat = net(xb)
 
         # evaluate (with average loss)
-        phi = loss(yb_hat, yb)
+        phi = loss(yb_hat, yb.view_as(yb_hat))
         running_loss += batch_size * phi.item()
         running_acc += yb_hat.argmax(dim=1).eq(yb.view(-1)).sum()
 

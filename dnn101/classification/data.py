@@ -46,72 +46,41 @@ class DNN101DataClassification2D(DNN101Data):
 
         return x, y
 
-    def plot_ground_truth(self):
-        # choose class levels
-        x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
-                                          torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
-        f_grid = self.f(torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1))
-        y_grid = self._get_labels(f_grid)
+    def plot_data(self, *args, labels=('train', 'val', 'test'), markers=('o', 's', '^')):
+        # args:  ((x_set1, y_set1), (x_bd_set1, y_bd_set1), ...), ((x_set2, y_set2), (x_bd_set2, y_bd_set2, ...)),...
+        tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
+        # train, val, test loop
+        for count, a in enumerate(args):
+                if a is not None:
+                    x = a[0]
+                    y = a[1]
+                    plt.scatter(x[:, 0], x[:, 1], None, y, cmap=cmap, marker=markers[count], label=labels[count])
 
-        my_colors = mpl.colormaps['viridis'].colors
-        my_colors = my_colors[::(len(my_colors) // (len(self.cutoffs) - 1))]
-        img = plt.imshow(y_grid.view(x1_grid.shape).T, origin='lower', extent=self.domain)
         plt.xlabel('x1')
         plt.ylabel('x2')
-        plt.colorbar(img, fraction=0.046, pad=0.04)
-
-    def plot_data(self, *args):
-        plot_order = ['train', 'val', 'test']
-        marker_order = ['o', 's', '^']
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], None, y, marker=marker_order[count], label=plot_order[count])
-
-        plt.xlabel('x')
-        plt.ylabel('y')
         plt.legend()
 
-    def plot_prediction(self, net=None, x_pts=None, y_pts=None, title='true'):
+    def plot_prediction(self, f, x_pts=None, y_pts=None):
         with torch.no_grad():
             x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
                                               torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
-            if net is None:
-                f_grid = self.f(x_grid)
+            f_grid = f(x_grid)
+            if f_grid.ndim <= 1 or f_grid.shape[1] == 1:
                 y_grid = self._get_labels(f_grid)
             else:
-                f_grid = net(x_grid)
-                if f_grid.shape[1] == 1:
-                    y_grid = self._get_labels(f_grid)
-                else:
-                    y_grid = f_grid.argmax(dim=1)
-
-            # img = plt.imshow(y_grid.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+                y_grid = f_grid.argmax(dim=1)
             tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
             cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
             plt.contourf(x1_grid, x2_grid, y_grid.reshape(x1_grid.shape), cmap=cmap, alpha=0.5)
 
             if x_pts is not None:
-                # f_pts = self.f(x_pts)
-                # y_pts = self._get_labels(f_pts)
-                plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
+                plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, cmap=cmap, label='points')
 
             plt.xlabel('x1')
             plt.ylabel('x2')
-            # plt.colorbar(img, fraction=0.046, pad=0.04)
-            plt.title(title)
-
-    def plot_prediction2(self, net=None, x_pts=None):
-        plt.subplot(1, 2, 1)
-        self.plot_prediction(x_pts=x_pts, title='true')
-
-        plt.subplot(1, 2, 2)
-        self.plot_prediction(net=net, x_pts=x_pts, title='prediction')
-
-        # TODO: difference image
 
     def plot_propagated_features(self, net, z, y):
         z1_grid, z2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
@@ -133,8 +102,6 @@ class DNN101DataClassification2D(DNN101Data):
         # plot first two columns
         for i in range(self.n_classes):
             plt.scatter(z[y == i, 0].detach(), z[y == i, 1].detach())
-
-        plt.show()
 
 
 class DNN101DataClassificationSKLearn(DNN101Data):
@@ -170,36 +137,41 @@ class DNN101DataClassificationSKLearn(DNN101Data):
     def _get_labels(self, f_pts):
         return f_pts.argmax(dim=1).view(-1)
 
-    def plot_data(self, *args):
-        plot_order = ['train', 'val', 'test']
-        marker_order = ['o', 's', '^']
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], None, y, marker=marker_order[count], label=plot_order[count])
+    def plot_data(self, *args, labels=('train', 'val', 'test'), markers=('o', 's', '^')):
+        # args:  ((x_set1, y_set1), (x_bd_set1, y_bd_set1), ...), ((x_set2, y_set2), (x_bd_set2, y_bd_set2, ...)),...
+        tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
+        # train, val, test loop
+        for count, a in enumerate(args):
+                x = a[0]
+                y = a[1]
+                if x is not None and y is not None:
+                    plt.scatter(x[:, 0], x[:, 1], None, y, cmap=cmap, marker=markers[count], label=labels[count])
 
-        plt.xlabel('x')
-        plt.ylabel('y')
+        plt.xlabel('x1')
+        plt.ylabel('x2')
         plt.legend()
 
-    def plot_prediction(self, net, x_pts=None, y_pts=None):
+    def plot_prediction(self, f, x_pts=None, y_pts=None):
         with torch.no_grad():
             x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
                                               torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
-            f_pred = net(x_grid)
-            y_pred = self._get_labels(f_pred)
+            f_grid = f(x_grid)
+            if f_grid.ndim <= 1 or f_grid.shape[1] == 1:
+                y_grid = self._get_labels(f_grid)
+            else:
+                y_grid = f_grid.argmax(dim=1)
             tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
             cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
-            plt.contourf(x1_grid, x2_grid, y_pred.reshape(x1_grid.shape), cmap=cmap, alpha=0.5)
+            plt.contourf(x1_grid, x2_grid, y_grid.reshape(x1_grid.shape), cmap=cmap, alpha=0.5)
 
             if x_pts is not None:
-                plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
+                plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, cmap=cmap, label='points')
+
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.title('prediction')
 
 
 if __name__ == "__main__":
@@ -221,10 +193,16 @@ if __name__ == "__main__":
     x, y = data2D.generate_data(n_samples=2000)
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y)
 
-    data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    data2D.plot_data((x_train, y_train), (x_val, y_val), (x_test, y_test))
     plt.show()
 
-    data2D.plot_prediction2(net2D, x_test)
+    plt.subplot(1, 2, 1)
+    data2D.plot_prediction(data2D.f, x_test, y_test)
+    plt.title('true')
+
+    plt.subplot(1, 2, 2)
+    data2D.plot_prediction(net2D, x_test, y_test)
+    plt.title('prediction')
     plt.show()
 
     data2D.plot_propagated_features(net2D, x_test, y_test)
@@ -234,8 +212,8 @@ if __name__ == "__main__":
     x, y = data2D.generate_data(n_samples=2000)
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
 
-    data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    data2D.plot_data((x_train, y_train), (x_val, y_val), (x_test, y_test))
     plt.show()
 
-    data2D.plot_prediction(net2D, x_test)
+    data2D.plot_prediction(net2D, x_test, y_test)
     plt.show()
