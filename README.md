@@ -1,9 +1,9 @@
 # dnn101
-A hands-on tutorial of deep neural networks for mathematicians
+A hands-on tutorial of deep neural networks for mathematicians. 
 
 # Introduction
 
-Deep learning has revolutionized data science and has given state-of-the-art results across applications that require high-dimensional function approximation and classification. This tutorial will help you understand the basics of deep neural networks using hands-on Google Colab notebooks.
+Deep learning has revolutionized data science and has given state-of-the-art results across applications that require high-dimensional function approximation and classification. This tutorial will help you understand the basics of deep neural networks using hands-on Google Colab notebooks.  This repository will evolve and more example will be added over time. 
 
 # Installation
 
@@ -53,7 +53,7 @@ x, y = dataset.generate_data(n_train + n_val + n_test)
 (x_train, y_train), (x_val, y_val), (x_test, y_test) = dataset.split_data(x, y, n_train=n_train, n_val=n_val)
 
 # plot!
-dataset.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+dataset.plot_data((x_train, y_train), (x_val, y_val), (x_test, y_test))
 plt.show()
 ```
 ![Regression Data](docs/figs/getting_started_regression_data.png)
