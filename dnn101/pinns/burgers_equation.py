@@ -64,7 +64,7 @@ class BurgersEquation1DPINN(HeatEquation1DPINN):
 
 
 class DNN101DataPINNBurgersEquation1D(DNN101DataPINNHeatEquation1D):
-    def __init__(self, f: Callable, g: Callable, g_init: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, -1, 1)), u_true: Callable = None):
+    def __init__(self, f: Callable, g: Callable, g_init: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, 0, 10)), u_true: Callable = None):
         super(DNN101DataPINNBurgersEquation1D, self).__init__(f, g, g_init, domain, u_true)
 
         # self.f = f

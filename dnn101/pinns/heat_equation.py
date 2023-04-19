@@ -64,7 +64,7 @@ class HeatEquation1DPINN(torch.nn.Module):
 
 
 class DNN101DataPINNHeatEquation1D(DNN101Data):
-    def __init__(self, f: Callable, g: Callable, g_init: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, -1, 1)), u_true: Callable = None):
+    def __init__(self, f: Callable, g: Callable, g_init: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, 0, 10)), u_true: Callable = None):
         super(DNN101DataPINNHeatEquation1D, self).__init__()
         self.f = f
         self.g = g
@@ -116,8 +116,8 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
 
     def plot_data(self, *args, label='train', marker='o'):
         # data x_int, y_int, x_bd, y_bd
-        color_order = ['b', 'r', 'g']
-        label_order = [': int', ': bd', ': init']
+        color_order = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        label_order = [': int', ': bd', ': init', ': init_deriv']
         for count, i in enumerate(range(0, len(args), 2)):
             x = args[i]
             y = args[i + 1]
@@ -173,11 +173,11 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
         x_grid = torch.cat((x1_grid.reshape(-1, 1), t * torch.ones_like(x1_grid).reshape(-1, 1)), dim=1)
 
         if net is None:
-            if u_true is not None:
+            if self.u_true is not None:
                 u = self.u_true(x_grid)
                 label = 'true'
             else:
-                print('no slice to plot!')
+                return ValueError('no slice to plot!')
         else:
             u = net(x_grid)
             label = 'approx'

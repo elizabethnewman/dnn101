@@ -1,3 +1,6 @@
+import math
+
+
 def convert_to_base(a: tuple, b: float = 2.0) -> tuple:
     """
     Convert tuple of floats to a base-exponent pair for nice printouts.

@@ -22,7 +22,7 @@ def evaluate_data(net, loss, x, y, device='cpu'):
         phi = loss(y_hat, y.to(device))
         acc = y_hat.argmax(dim=1).eq(y.view(-1)).sum()
 
-    return phi.item(), 100 * (acc / x.shape[0])
+    return phi.item(), 100 * (acc.item() / x.shape[0])
 
 
 def train_data(net, loss, x, y, optimizer, scheduler=None, batch_size=5, device='cpu'):
