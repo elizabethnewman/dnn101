@@ -168,6 +168,28 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
                 plt.title('approx')
 
 
+    def plot_slice(self, t, net=None, show_diff=False):
+        x1_grid = torch.linspace(self.domain.domain[0], self.domain.domain[1], 50)
+        x_grid = torch.cat((x1_grid.reshape(-1, 1), t * torch.ones_like(x1_grid).reshape(-1, 1)), dim=1)
+
+        if net is None:
+            if u_true is not None:
+                u = self.u_true(x_grid)
+                label = 'true'
+            else:
+                print('no slice to plot!')
+        else:
+            u = net(x_grid)
+            label = 'approx'
+            if show_diff is True and self.u_true is not None:
+                u = u - self.u_true(x_grid)
+                label = 'abs. diff.'
+
+        plt.plot(x1_grid.view(-1), u.view(-1).detach(), label=label)
+        plt.xlim(self.domain.domain[0], self.domain.domain[1])
+
+
+
 def pde_libraryHeatEquation1D(fctn_num=0):
 
     if fctn_num == 0:
@@ -214,4 +236,8 @@ if __name__ == "__main__":
                           nn.Tanh(),
                           nn.Linear(10, 1))
     pde.plot_prediction2(net2D)
+    plt.show()
+
+    pde.plot_slice(pde.domain.domain[2])
+    plt.ylim([0, 2])
     plt.show()

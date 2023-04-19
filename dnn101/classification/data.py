@@ -75,8 +75,8 @@ class DNN101DataClassification2D(DNN101Data):
 
     def plot_prediction(self, net=None, x_pts=None, y_pts=None, title='true'):
         with torch.no_grad():
-            x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
-                                              torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
+            x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
+                                              torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
             if net is None:
@@ -89,7 +89,10 @@ class DNN101DataClassification2D(DNN101Data):
                 else:
                     y_grid = f_grid.argmax(dim=1)
 
-            img = plt.imshow(y_grid.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+            # img = plt.imshow(y_grid.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+            tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
+            plt.contourf(x1_grid, x2_grid, y_grid.reshape(x1_grid.shape), cmap=cmap, alpha=0.5)
 
             if x_pts is not None:
                 # f_pts = self.f(x_pts)
@@ -98,7 +101,7 @@ class DNN101DataClassification2D(DNN101Data):
 
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.colorbar(img, fraction=0.046, pad=0.04)
+            # plt.colorbar(img, fraction=0.046, pad=0.04)
             plt.title(title)
 
     def plot_prediction2(self, net=None, x_pts=None):
@@ -111,23 +114,19 @@ class DNN101DataClassification2D(DNN101Data):
         # TODO: difference image
 
     def plot_propagated_features(self, net, z, y):
-        z1_grid, z2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
-                                          torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
+        z1_grid, z2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
+                                          torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
         z_grid = torch.cat((z1_grid.reshape(-1, 1), z2_grid.reshape(-1, 1)), dim=1)
-
-        # propagate through all but final layer (output features)
-
-            # z_grid = net[i](z_grid)
 
         k = net[-1].weight.shape[1] - z_grid.shape[1]
         tmp = torch.cat((z_grid, torch.zeros(z_grid.shape[0], k)), dim=1)
         z_labels = self._get_labels(net[-1](tmp))
 
-        # plt.imshow(z_labels.reshape(z1_grid.shape).T, origin='lower', extent=self.domain)
         tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
         cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
         plt.contourf(z1_grid, z2_grid, z_labels.reshape(z1_grid.shape), cmap=cmap, alpha=0.5)
 
+        # propagate through all but final layer (output features)
         for i in range(len(net) - 1):
             z = net[i](z)
 
@@ -136,6 +135,7 @@ class DNN101DataClassification2D(DNN101Data):
             plt.scatter(z[y == i, 0].detach(), z[y == i, 1].detach())
 
         plt.show()
+
 
 class DNN101DataClassificationSKLearn(DNN101Data):
     def __init__(self, name: str = 'blobs', **kwargs):
@@ -185,37 +185,21 @@ class DNN101DataClassificationSKLearn(DNN101Data):
 
     def plot_prediction(self, net, x_pts=None, y_pts=None):
         with torch.no_grad():
-            x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
-                                              torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
+            x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 200),
+                                              torch.linspace(self.domain[2], self.domain[3], 200), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
             f_pred = net(x_grid)
             y_pred = self._get_labels(f_pred)
-            img = plt.imshow(y_pred.reshape(x1_grid.shape).T, extent=self.domain, origin='lower')
+            tmp = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
+            plt.contourf(x1_grid, x2_grid, y_pred.reshape(x1_grid.shape), cmap=cmap, alpha=0.5)
+
             if x_pts is not None:
                 plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
             plt.xlabel('x1')
             plt.ylabel('x2')
-            plt.colorbar(img, fraction=0.046, pad=0.04)
             plt.title('prediction')
-
-
-def plot_prediction(y_grid, domain, x_pts=None, y_pts=None, title='prediction'):
-    img = plt.imshow(y_grid.T, extent=domain, origin='lower')
-    if x_pts is not None:
-        plt.scatter(x_pts[:, 0], x_pts[:, 1], None, y_pts, label='points')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.colorbar(img, fraction=0.046, pad=0.04)
-    plt.title(title)
-
-
-def evaluate_net_before_last_layer(net, x):
-    n = len(net)
-    for i, layer in enumerate(net):
-        if i < n - 1:
-            x = layer(x)
-    return x
 
 
 if __name__ == "__main__":
@@ -224,7 +208,7 @@ if __name__ == "__main__":
 
     mpl.rcParams['figure.figsize'] = (8, 6)
     mpl.rcParams['lines.linewidth'] = 8
-    mpl.rcParams['lines.markersize'] = 15
+    mpl.rcParams['lines.markersize'] = 10
     mpl.rcParams['font.size'] = 10
 
     net2D = nn.Sequential(nn.Linear(2, 10),
@@ -246,12 +230,12 @@ if __name__ == "__main__":
     data2D.plot_propagated_features(net2D, x_test, y_test)
     plt.show()
 
-    # data2D = DNN101DataClassificationSKLearn('blobs')
-    # x, y = data2D.generate_data(n_samples=2000)
-    # (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
-    #
-    # data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
-    # plt.show()
-    #
-    # data2D.plot_prediction(net2D, x_test)
-    # plt.show()
+    data2D = DNN101DataClassificationSKLearn('moons')
+    x, y = data2D.generate_data(n_samples=2000)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=1000)
+
+    data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    plt.show()
+
+    data2D.plot_prediction(net2D, x_test)
+    plt.show()
