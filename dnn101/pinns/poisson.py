@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from hessQuik.utils import peaks
 import sklearn.datasets as datasets
 from copy import deepcopy
-from dnn101.utils import DNN101Data
+from dnn101.pinns import DNN101DataPINN
 from dnn101.pinns import PDEDomain, PDEDomainBox
 
 
@@ -63,12 +63,13 @@ class PoissonEquation2DPINN(torch.nn.Module):
         return u_xx + u_yy
 
 
-class DNN101DataPINNPoisson2D(DNN101Data):
+class DNN101DataPINNPoisson2D(DNN101DataPINN):
     def __init__(self, f: Callable, g: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, -1, 1)), u_true: Callable = None):
         super(DNN101DataPINNPoisson2D, self).__init__()
         self.f = f
         self.g = g
         self.domain = domain
+        self.domain_labels = ('x1', 'x2')
         self.u_true = u_true
 
     def generate_data(self, n_train=80, n_val=10, n_test=10, p_bd=0.2):
@@ -97,58 +98,44 @@ class DNN101DataPINNPoisson2D(DNN101Data):
 
         return ((x_int_train, f_train), (x_bd_train, g_train)), ((x_int_val, f_val), (x_bd_val, g_val)), ((x_int_test, f_test), (x_bd_test, g_test))
 
-    def plot_data(self, *args, label='train', marker='o'):
-        # data x_int, y_int, x_bd, y_bd
-        color_order = ['b', 'r']
-        label_order = [': int', ': bd']
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], color=color_order[count], marker=marker, label=label + label_order[count])
-
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.legend()
-
-    def plot_prediction(self, net, *args):
-        with torch.no_grad():
-            x1_grid, x2_grid = self.domain.generate_grid2D()
-            x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-            plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape).detach())
-
-    def plot_prediction2(self, net, *args):
-        with torch.no_grad():
-            x1_grid, x2_grid = self.domain.generate_grid2D()
-            x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-
-            if self.u_true is not None:
-                plt.subplot(1, 3, 1)
-                plt.contourf(x1_grid, x2_grid, self.u_true(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
-                plt.colorbar()
-                plt.title('true')
-
-                plt.subplot(1, 3, 2)
-                plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
-                plt.colorbar()
-                plt.title('approx')
-
-                plt.subplot(1, 3, 3)
-                plt.contourf(x1_grid, x2_grid, torch.abs(net(x_grid).reshape(-1) - self.u_true(x_grid).reshape(-1)).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
-                plt.colorbar()
-                plt.title('abs. diff.')
-            else:
-                plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x1')
-                plt.ylabel('x2')
-                plt.colorbar()
-                plt.title('approx')
+    # def plot_prediction(self, net, *args):
+    #     with torch.no_grad():
+    #         x1_grid, x2_grid = self.domain.generate_grid2D()
+    #         x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
+    #         plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape).detach())
+    #
+    # def plot_prediction2(self, net, *args):
+    #     with torch.no_grad():
+    #         x1_grid, x2_grid = self.domain.generate_grid2D()
+    #         x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
+    #
+    #         if self.u_true is not None:
+    #             plt.subplot(1, 3, 1)
+    #             plt.contourf(x1_grid, x2_grid, self.u_true(x_grid).reshape(x1_grid.shape))
+    #             plt.xlabel('x1')
+    #             plt.ylabel('x2')
+    #             plt.colorbar()
+    #             plt.title('true')
+    #
+    #             plt.subplot(1, 3, 2)
+    #             plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
+    #             plt.xlabel('x1')
+    #             plt.ylabel('x2')
+    #             plt.colorbar()
+    #             plt.title('approx')
+    #
+    #             plt.subplot(1, 3, 3)
+    #             plt.contourf(x1_grid, x2_grid, torch.abs(net(x_grid).reshape(-1) - self.u_true(x_grid).reshape(-1)).reshape(x1_grid.shape))
+    #             plt.xlabel('x1')
+    #             plt.ylabel('x2')
+    #             plt.colorbar()
+    #             plt.title('abs. diff.')
+    #         else:
+    #             plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
+    #             plt.xlabel('x1')
+    #             plt.ylabel('x2')
+    #             plt.colorbar()
+    #             plt.title('approx')
 
 
 def pde_libraryPoisson2D(fctn_num=0):
@@ -179,6 +166,7 @@ def pde_libraryPoisson2D(fctn_num=0):
 
 if __name__ == "__main__":
     import torch.nn as nn
+    # from dnn101.pinns.pde_data import plot_data
 
     pde_setup = pde_libraryPoisson2D(1)
     f_true = pde_setup['f']
@@ -186,14 +174,24 @@ if __name__ == "__main__":
     u_true = pde_setup['u_true']
 
     pde = DNN101DataPINNPoisson2D(f_true, g_true, u_true=u_true)
-    (train_int, train_bd), (val_int, val_bd), (test_int, test_bd) = pde.generate_data()
-    pde.plot_data(*train_int, *train_bd, marker='o', label='train')
-    pde.plot_data(*val_int, *val_bd, marker='s', label='val')
-    pde.plot_data(*test_int, *test_bd, marker='^', label='test')
+
+    data_train, data_val, data_test = pde.generate_data()
+    pde.plot_data(data_train, data_val, data_test)
     plt.show()
 
     net2D = nn.Sequential(nn.Linear(2, 10),
                           nn.Tanh(),
                           nn.Linear(10, 1))
-    pde.plot_prediction2(net2D)
+
+    plt.subplot(1, 3, 1)
+    pde.plot_prediction(pde.u_true)
+    plt.title('true')
+
+    plt.subplot(1, 3, 2)
+    pde.plot_prediction(net2D)
+    plt.title('approx')
+
+    plt.subplot(1, 3, 3)
+    pde.plot_prediction(lambda x: torch.abs(net2D(x).view(-1) - pde.u_true(x).view(-1)))
+    plt.title('abs. diff.')
     plt.show()

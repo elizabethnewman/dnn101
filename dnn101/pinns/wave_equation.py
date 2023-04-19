@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from hessQuik.utils import peaks
 import sklearn.datasets as datasets
 from copy import deepcopy
-from dnn101.utils import DNN101Data
+from dnn101.pinns import DNN101DataPINN
 from dnn101.pinns import PDEDomain, PDEDomainBox, DNN101DataPINNHeatEquation1D
 
 
@@ -81,10 +81,14 @@ class WaveEquationPINN(torch.nn.Module):
         return u_tt - (self.c ** 2) * u_xx
 
 
-class DNN101DataPINNWaveEquation1D(DNN101DataPINNHeatEquation1D):
+class DNN101DataPINNWaveEquation1D(DNN101DataPINN):
     def __init__(self, f: Callable, g: Callable, g_init: Callable, g_init_deriv: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, -1, 1)), u_true: Callable = None):
-        super(DNN101DataPINNWaveEquation1D, self).__init__(f, g, g_init, domain, u_true)
+        super(DNN101DataPINNWaveEquation1D, self).__init__(domain=domain, u_true=u_true)
+        self.f = f
+        self.g = g
+        self.g_init = g_init
         self.g_init_deriv = g_init_deriv
+        self.domain_labels = ('x', 't')
 
     def generate_data(self, n_train=80, n_val=10, n_test=10, p_bd=0.2, p_init=0.2):
         # p_bd is fraction of (n_train + n_val + n_test), the ratio of boundary to interior training points
@@ -102,7 +106,7 @@ class DNN101DataPINNWaveEquation1D(DNN101DataPINNHeatEquation1D):
         # points on the boundary
         n_bd = math.floor(p_bd * n_int)
         xt_bd = self.domain.generate_boundary_points(n_bd)
-        xt_init = xt_bd[:xt_bd.shape[0] // 4]
+        # xt_init = xt_bd[:xt_bd.shape[0] // 4]
         xt_bd = xt_bd[xt_bd.shape[0] // 2:]
         g = self.g(xt_bd).view(-1, 1)
 
@@ -164,6 +168,7 @@ def pde_libraryWaveEquation1D(fctn_num=0):
 
 if __name__ == "__main__":
     import torch.nn as nn
+    # from dnn101.pinns.pde_data import plot_data
 
     pde_setup = pde_libraryWaveEquation1D(0)
     f_true = pde_setup['f']
@@ -173,18 +178,46 @@ if __name__ == "__main__":
     u_true = pde_setup['u_true']
 
     pde = DNN101DataPINNWaveEquation1D(f_true, g_true, g_init, g_init_deriv, domain=PDEDomainBox((-1, 1, 0, 10)), u_true=u_true)
-    (train_int, train_bd, train_init, train_init_deriv), (val_int, val_bd, val_init, val_init_deriv), (test_int, test_bd, test_init, test_init_deriv) = pde.generate_data()
-    pde.plot_data(*train_int, *train_bd, *train_init, *train_init_deriv, marker='o', label='train')
-    pde.plot_data(*val_int, *val_bd, *val_init, marker='s', label='val')
-    pde.plot_data(*test_int, *test_bd, *test_init, marker='^', label='test')
+
+    data_train, data_val, data_test = pde.generate_data()
+    pde.plot_data(data_train, data_val, data_test)
     plt.show()
 
     net2D = nn.Sequential(nn.Linear(2, 10),
                           nn.Tanh(),
                           nn.Linear(10, 1))
-    pde.plot_prediction2(net2D)
+
+    plt.subplot(1, 3, 1)
+    pde.plot_prediction(pde.u_true)
+    plt.title('true')
+
+    plt.subplot(1, 3, 2)
+    pde.plot_prediction(net2D)
+    plt.title('approx')
+
+    plt.subplot(1, 3, 3)
+    pde.plot_prediction(lambda x: torch.abs(net2D(x).view(-1) - pde.u_true(x).view(-1)))
+    plt.title('abs. diff.')
     plt.show()
 
-    pde.plot_slice(0)
+
+    for t in range(0, 10, 2):
+        pde.plot_slice(net2D, t, label=t)
+
+    plt.title('slices')
+    plt.legend()
     plt.show()
+
+    # data_train, data_val, data_test = pde.generate_data()
+    # plot_data(data_train, data_val, data_test)
+    # plt.show()
+    #
+    # net2D = nn.Sequential(nn.Linear(2, 10),
+    #                       nn.Tanh(),
+    #                       nn.Linear(10, 1))
+    # pde.plot_prediction2(net2D)
+    # plt.show()
+    #
+    # pde.plot_slice(0)
+    # plt.show()
 

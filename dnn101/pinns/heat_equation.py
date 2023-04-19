@@ -9,7 +9,7 @@ from hessQuik.utils import peaks
 import sklearn.datasets as datasets
 from copy import deepcopy
 from dnn101.utils import DNN101Data
-from dnn101.pinns import PDEDomain, PDEDomainBox
+from dnn101.pinns import PDEDomain, PDEDomainBox, DNN101DataPINN
 
 
 
@@ -63,7 +63,7 @@ class HeatEquation1DPINN(torch.nn.Module):
         return u_t - u_xx
 
 
-class DNN101DataPINNHeatEquation1D(DNN101Data):
+class DNN101DataPINNHeatEquation1D(DNN101DataPINN):
     def __init__(self, f: Callable, g: Callable, g_init: Callable, domain: PDEDomain = PDEDomainBox((-1, 1, 0, 10)), u_true: Callable = None):
         super(DNN101DataPINNHeatEquation1D, self).__init__()
         self.f = f
@@ -114,82 +114,6 @@ class DNN101DataPINNHeatEquation1D(DNN101Data):
         data_test = ((x_int_test, f_test), (x_bd_test, g_test), (x_init_test, g_init_test))
         return data_train, data_val, data_test
 
-    def plot_data(self, *args, label='train', marker='o'):
-        # data x_int, y_int, x_bd, y_bd
-        color_order = plt.rcParams['axes.prop_cycle'].by_key()['color']
-        label_order = [': int', ': bd', ': init', ': init_deriv']
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], color=color_order[count], marker=marker, label=label + label_order[count])
-
-        plt.xlabel('x')
-        plt.ylabel('t')
-        plt.legend()
-
-    def plot_prediction(self, net, *args):
-        with torch.no_grad():
-            x1_grid, x2_grid = self.domain.generate_grid2D()
-            x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-            plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape).detach())
-
-    def plot_prediction2(self, net, *args):
-        with torch.no_grad():
-            x1_grid, x2_grid = self.domain.generate_grid2D()
-            x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-
-            if self.u_true is not None:
-                plt.subplot(1, 3, 1)
-                plt.contourf(x1_grid, x2_grid, self.u_true(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x')
-                plt.ylabel('t')
-                plt.colorbar()
-                plt.title('true')
-
-                plt.subplot(1, 3, 2)
-                plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x')
-                plt.ylabel('t')
-                plt.colorbar()
-                plt.title('approx')
-
-                plt.subplot(1, 3, 3)
-                plt.contourf(x1_grid, x2_grid, torch.abs(net(x_grid).reshape(-1) - self.u_true(x_grid).reshape(-1)).reshape(x1_grid.shape))
-                plt.xlabel('x')
-                plt.ylabel('t')
-                plt.colorbar()
-                plt.title('abs. diff.')
-            else:
-                plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-                plt.xlabel('x')
-                plt.ylabel('t')
-                plt.colorbar()
-                plt.title('approx')
-
-
-    def plot_slice(self, t, net=None, show_diff=False):
-        x1_grid = torch.linspace(self.domain.domain[0], self.domain.domain[1], 50)
-        x_grid = torch.cat((x1_grid.reshape(-1, 1), t * torch.ones_like(x1_grid).reshape(-1, 1)), dim=1)
-
-        if net is None:
-            if self.u_true is not None:
-                u = self.u_true(x_grid)
-                label = 'true'
-            else:
-                return ValueError('no slice to plot!')
-        else:
-            u = net(x_grid)
-            label = 'approx'
-            if show_diff is True and self.u_true is not None:
-                u = u - self.u_true(x_grid)
-                label = 'abs. diff.'
-
-        plt.plot(x1_grid.view(-1), u.view(-1).detach(), label=label)
-        plt.xlim(self.domain.domain[0], self.domain.domain[1])
-
-
-
 def pde_libraryHeatEquation1D(fctn_num=0):
 
     if fctn_num == 0:
@@ -218,6 +142,7 @@ def pde_libraryHeatEquation1D(fctn_num=0):
 
 if __name__ == "__main__":
     import torch.nn as nn
+    # from dnn101.pinns.pde_data import plot_data
 
     pde_setup = pde_libraryHeatEquation1D(0)
     f_true = pde_setup['f']
@@ -226,18 +151,52 @@ if __name__ == "__main__":
     u_true = pde_setup['u_true']
 
     pde = DNN101DataPINNHeatEquation1D(f_true, g_true, g_init, domain=PDEDomainBox((-1, 1, 0, 10)), u_true=u_true)
-    (train_int, train_bd, train_init), (val_int, val_bd, val_init), (test_int, test_bd, test_init) = pde.generate_data()
-    pde.plot_data(*train_int, *train_bd, *train_init, marker='o', label='train')
-    pde.plot_data(*val_int, *val_bd, *val_init, marker='s', label='val')
-    pde.plot_data(*test_int, *test_bd, *test_init, marker='^', label='test')
+
+    data_train, data_val, data_test = pde.generate_data()
+    pde.plot_data(data_train, data_val, data_test)
     plt.show()
 
     net2D = nn.Sequential(nn.Linear(2, 10),
                           nn.Tanh(),
                           nn.Linear(10, 1))
-    pde.plot_prediction2(net2D)
+
+    plt.subplot(1, 3, 1)
+    pde.plot_prediction(pde.u_true)
+    plt.title('true')
+
+    plt.subplot(1, 3, 2)
+    pde.plot_prediction(net2D)
+    plt.title('approx')
+
+    plt.subplot(1, 3, 3)
+    pde.plot_prediction(lambda x: torch.abs(net2D(x).view(-1) - pde.u_true(x).view(-1)))
+    plt.title('abs. diff.')
     plt.show()
 
-    pde.plot_slice(pde.domain.domain[2])
-    plt.ylim([0, 2])
+
+    for t in range(0, 10, 2):
+        pde.plot_slice(net2D, t, label=str(t))
+
+    plt.title('slices')
+    plt.legend()
     plt.show()
+
+    # (train_int, train_bd, train_init), (val_int, val_bd, val_init), (test_int, test_bd, test_init) = pde.generate_data()
+    # pde.plot_data(*train_int, *train_bd, *train_init, marker='o', label='train')
+    # pde.plot_data(*val_int, *val_bd, *val_init, marker='s', label='val')
+    # pde.plot_data(*test_int, *test_bd, *test_init, marker='^', label='test')
+    # plt.show()
+    #
+    # data_train, data_val, data_test = pde.generate_data()
+    # plot_data(data_train)
+    # plt.show()
+    #
+    # net2D = nn.Sequential(nn.Linear(2, 10),
+    #                       nn.Tanh(),
+    #                       nn.Linear(10, 1))
+    # pde.plot_prediction2(net2D)
+    # plt.show()
+    #
+    # pde.plot_slice(pde.domain.domain[2])
+    # plt.ylim([0, 2])
+    # plt.show()
