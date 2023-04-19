@@ -33,6 +33,6 @@ dataset.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
 plt.show()
 ```
 
-![Regression Data](docs/figs/getting_started_regression_data.png)
+![Regression Data](https://github.com/elizabethnewman/dnn101/tree/main/docs/figs/getting_started_regression_data.png)
 
 
