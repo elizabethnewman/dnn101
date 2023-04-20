@@ -102,7 +102,7 @@ class DNN101DataPINNHeatEquation1D(DNN101DataPINN):
 
 
         # true initial condition
-        g_init = self.g_init(xt_init)
+        g_init = self.g_init(xt_init).view(-1, 1)
 
         n_tot = xt_init.shape[0]
         p_train = n_train / n_int
