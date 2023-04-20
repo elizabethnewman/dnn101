@@ -45,7 +45,7 @@ class DNN101DataRegression1D(DNN101DataRegression):
     def plot_prediction(self, f, *args, label='true', color='b', linestyle='-'):
         with torch.no_grad():
             x_grid = torch.linspace(self.domain[0], self.domain[1], 100).view(-1, 1)
-            plt.plot(x_grid, f(x_grid), '--', label=label, color=color, linestyle=linestyle)
+            plt.plot(x_grid, f(x_grid), label=label, color=color, linestyle=linestyle)
             plt.xlabel('x')
             plt.ylabel('y')
             plt.legend()
@@ -60,11 +60,12 @@ class DNN101DataRegression2D(DNN101DataRegression):
         color_order = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
         # train, val, test loop
+        cmap = mpl.colormaps['viridis']
         for count, a in enumerate(args):
             x = a[0]
             y = a[1]
             if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], color=color_order[count], marker=markers[count], label=labels[count])
+                plt.scatter(x[:, 0], x[:, 1], c=y, cmap=cmap, marker=markers[count], label=labels[count])
 
         plt.xlabel('x1')
         plt.ylabel('x2')
