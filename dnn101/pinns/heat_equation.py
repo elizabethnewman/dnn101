@@ -15,7 +15,7 @@ from dnn101.pinns import PDEDomain, PDEDomainBox, DNN101DataPINN
 
 class HeatEquation1DPINN(torch.nn.Module):
 
-    def __init__(self, net, x_domain, t_domain):
+    def __init__(self, net):
         super(HeatEquation1DPINN, self).__init__()
         self.net = net
 
@@ -181,6 +181,21 @@ if __name__ == "__main__":
     plt.title('slices')
     plt.legend()
     plt.show()
+
+    torch.manual_seed(42)
+
+    in_features = 2
+    out_features = 1
+
+    net = nn.Sequential(
+        nn.Linear(in_features, 8),
+        nn.Tanh(),
+        nn.Linear(8, 20),
+        nn.Tanh(),
+        nn.Linear(20, 10),
+        nn.Tanh(),
+        nn.Linear(10, out_features)
+    )
 
     # (train_int, train_bd, train_init), (val_int, val_bd, val_init), (test_int, test_bd, test_init) = pde.generate_data()
     # pde.plot_data(*train_int, *train_bd, *train_init, marker='o', label='train')

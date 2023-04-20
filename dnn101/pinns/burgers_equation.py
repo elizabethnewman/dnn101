@@ -15,8 +15,8 @@ from dnn101.pinns import PDEDomain, PDEDomainBox, DNN101DataPINNHeatEquation1D, 
 
 class BurgersEquation1DPINN(HeatEquation1DPINN):
 
-    def __init__(self, net, x_domain, t_domain):
-        super(BurgersEquation1DPINN, self).__init__(net, x_domain, t_domain)
+    def __init__(self, net):
+        super(BurgersEquation1DPINN, self).__init__(net)
         self.c = torch.nn.Parameter(torch.tensor(1))
 
     def forward(self, xt_int, f, xt_init, g, xt_bound, b):
