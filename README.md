@@ -21,9 +21,9 @@ python -m pip install git+https://github.com/elizabethnewman/dnn101.git
 
 * [Convolutional Neural Networks](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/cnn/DNN101_Convolution_Neural_Network.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/cnn/DNN101_Convolution_Neural_Network.ipynb)
 
-* [Ablation Study of DNN Architectures](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Ablation_Study_of_DNN_Architectures.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Ablation_Study_of_DNN_Architectures.ipynb)
+* [Ablation Study of DNN Architectures](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Ablation_Study_of_DNN_Architectures.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Ablation_Study_of_DNN_Architectures.ipynb)
 
-* [Testing PyTorch Layers](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Testing_Layers.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Testing_Layers.ipynb)
+* [Testing PyTorch Layers](https://github.com/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Testing_Layers.ipynb) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/elizabethnewman/dnn101/blob/main/dnn101/utils/DNN101_Testing_Layers.ipynb)
 
 
 # Getting Started
