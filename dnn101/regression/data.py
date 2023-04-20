@@ -1,5 +1,6 @@
 import torch
 from typing import Callable
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from dnn101.utils import DNN101Data
 
