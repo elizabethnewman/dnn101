@@ -29,21 +29,23 @@ class DNN101DataRegression1D(DNN101DataRegression):
         super(DNN101DataRegression1D, self).__init__(f=f, domain=domain, noise_level=noise_level)
 
     def plot_data(self, *args, labels=('train', 'val', 'test'), markers=('o', 's', '^')):
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.plot(x, y, markers[count], label=labels[count])
+        color_order = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-        plt.xlabel('x')
-        plt.ylabel('y')
+        # train, val, test loop
+        for count, a in enumerate(args):
+            x = a[0]
+            y = a[1]
+            if x is not None and y is not None:
+                plt.scatter(x.view(-1), y.view(-1), color=color_order[count], marker=markers[count], label=labels[count])
+
+        plt.xlabel('x1')
+        plt.ylabel('x2')
         plt.legend()
 
-    def plot_prediction(self, net, *args):
+    def plot_prediction(self, f, *args, label='true', color='b', linestyle='-'):
         with torch.no_grad():
             x_grid = torch.linspace(self.domain[0], self.domain[1], 100).view(-1, 1)
-            plt.plot(x_grid, net(x_grid), '--', label='pred', color='g')
-            plt.plot(x_grid, self.f(x_grid), label='true', color='b')
+            plt.plot(x_grid, f(x_grid), '--', label=label, color=color, linestyle=linestyle)
             plt.xlabel('x')
             plt.ylabel('y')
             plt.legend()
@@ -54,55 +56,35 @@ class DNN101DataRegression2D(DNN101DataRegression):
         super(DNN101DataRegression2D, self).__init__(f=f, domain=domain, noise_level=noise_level)
 
     def plot_data(self, *args, labels=('train', 'val', 'test'), markers=('o', 's', '^')):
-        for count, i in enumerate(range(0, len(args), 2)):
-            x = args[i]
-            y = args[i + 1]
-            if x is not None and y is not None:
-                plt.scatter(x[:, 0], x[:, 1], None, y, marker=markers[count], label=labels[count])
+        # args:  ((x_set1, y_set1), (x_bd_set1, y_bd_set1), ...), ((x_set2, y_set2), (x_bd_set2, y_bd_set2, ...)),...
+        color_order = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.colorbar()
+        # train, val, test loop
+        for count, a in enumerate(args):
+            x = a[0]
+            y = a[1]
+            if x is not None and y is not None:
+                plt.scatter(x[:, 0], x[:, 1], color=color_order[count], marker=markers[count], label=labels[count])
+
+        plt.xlabel('x1')
+        plt.ylabel('x2')
         plt.legend()
 
-    def plot_prediction1(self, net=None, abs_diff=False):
+    def plot_prediction(self, *args, **kwargs):
+        f = args[0]
+
         with torch.no_grad():
             x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
                                               torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
             x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
 
-            if net is None:
-                plt.contourf(x1_grid, x2_grid, self.f(x_grid).reshape(x1_grid.shape))
-
-            else:
-                if abs_diff is True:
-                    plt.contourf(x1_grid, x2_grid, torch.abs(self.f(x_grid).view(-1) - net(x_grid).view(-1)).reshape(x1_grid.shape))
-                else:
-                    plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
+            plt.contourf(x1_grid, x2_grid, f(x_grid).reshape(x1_grid.shape))
 
             plt.xlabel('x1')
             plt.ylabel('x2')
             plt.colorbar()
 
-    def plot_prediction(self, net, *args):
-        with torch.no_grad():
-            # x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
-            #                                   torch.linspace(self.domain[2], self.domain[3], 50), indexing='ij')
-            # x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-
-            plt.subplot(1, 3, 1)
-            self.plot_prediction1()
-            plt.title('true')
-
-            plt.subplot(1, 3, 2)
-            self.plot_prediction1(net)
-            plt.title('approx')
-
-            plt.subplot(1, 3, 3)
-            self.plot_prediction1(net, abs_diff=True)
-            plt.title('abs. diff.')
-
-    def plot_prediction3D(self, net):
+    def plot_prediction3D(self, net, *args, **kwargs):
 
         with torch.no_grad():
             x1_grid, x2_grid = torch.meshgrid(torch.linspace(self.domain[0], self.domain[1], 50),
@@ -151,10 +133,11 @@ if __name__ == "__main__":
     x, y = data1D.generate_data()
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = data1D.split_data(x, y)
 
-    data1D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    data1D.plot_data((x_train, y_train), (x_val, y_val), (x_test, y_test))
     plt.show()
 
-    data1D.plot_prediction(net1D)
+    data1D.plot_prediction(data1D.f, label='true', color='b')
+    data1D.plot_prediction(net1D, label='pred', color='g', linestyle='--')
     plt.show()
 
     net2D = nn.Sequential(nn.Linear(2, 10),
@@ -172,7 +155,7 @@ if __name__ == "__main__":
     x, y = data2D.generate_data(n_train + n_val + n_test)
     (x_train, y_train), (x_val, y_val), (x_test, y_test) = data2D.split_data(x, y, n_train=n_train, n_val=n_val)
 
-    data2D.plot_data(x_train, y_train, x_val, y_val, x_test, y_test)
+    data2D.plot_data((x_train, y_train), (x_val, y_val), (x_test, y_test))
     plt.show()
 
     data2D.plot_prediction(net2D)
