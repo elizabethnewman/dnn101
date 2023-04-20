@@ -19,7 +19,8 @@ class HeatEquation1DPINN(torch.nn.Module):
         super(HeatEquation1DPINN, self).__init__()
         self.net = net
 
-    def forward(self, xt_int, f, xt_init, g, xt_bound, b):
+    def forward(self, data):
+        (xt_int, f), (xt_init, g), (xt_bound, b) = data
         # evaluate initial condition
         n_init = xt_init.shape[0]
         pred_init = self.net(xt_init)
