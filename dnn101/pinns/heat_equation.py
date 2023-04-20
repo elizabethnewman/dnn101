@@ -40,7 +40,7 @@ class HeatEquation1DPINN(torch.nn.Module):
         pred_f = self.pde(x, t)
         loss_f = (0.5 / n_int) * torch.norm(pred_f - f) ** 2
 
-        return loss_init, loss_bound, loss_f
+        return loss_init + loss_bound, loss_f
 
     def pde(self, x, t):
 
