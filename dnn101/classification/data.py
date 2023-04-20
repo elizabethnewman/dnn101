@@ -52,9 +52,9 @@ class DNN101DataClassification2D(DNN101Data):
         cmap = mpl.colors.ListedColormap(tmp[:self.n_classes])
         # train, val, test loop
         for count, a in enumerate(args):
-                if a is not None:
-                    x = a[0]
-                    y = a[1]
+                x = a[0]
+                y = a[1]
+                if x is not None and y is not None:
                     plt.scatter(x[:, 0], x[:, 1], None, y, cmap=cmap, marker=markers[count], label=labels[count])
 
         plt.xlabel('x1')
