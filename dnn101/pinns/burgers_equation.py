@@ -70,7 +70,7 @@ class DNN101DataPINNBurgersEquation1D(DNN101DataPINNHeatEquation1D):
         super(DNN101DataPINNBurgersEquation1D, self).__init__(f, g, g_init, domain=domain, u_true=u_true)
 
 
-def pde_libraryBurgersEquation1D(fctn_num=0):
+def pde_library_BurgersEquation1D(fctn_num=0):
 
     if fctn_num == 0:
         p = torch.pi

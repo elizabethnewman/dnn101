@@ -115,7 +115,7 @@ class DNN101DataPINNHeatEquation1D(DNN101DataPINN):
         data_test = ((x_int_test, f_test), (x_bd_test, g_test), (x_init_test, g_init_test))
         return data_train, data_val, data_test
 
-def pde_libraryHeatEquation1D(fctn_num=0):
+def pde_library_HeatEquation1D(fctn_num=0):
 
     if fctn_num == 0:
         x_part = lambda x: torch.exp(-x ** 2 + 1) - 1

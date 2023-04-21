@@ -100,47 +100,8 @@ class DNN101DataPINNPoisson2D(DNN101DataPINN):
 
         return ((x_int_train, f_train), (x_bd_train, g_train)), ((x_int_val, f_val), (x_bd_val, g_val)), ((x_int_test, f_test), (x_bd_test, g_test))
 
-    # def plot_prediction(self, net, *args):
-    #     with torch.no_grad():
-    #         x1_grid, x2_grid = self.domain.generate_grid2D()
-    #         x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-    #         plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape).detach())
-    #
-    # def plot_prediction2(self, net, *args):
-    #     with torch.no_grad():
-    #         x1_grid, x2_grid = self.domain.generate_grid2D()
-    #         x_grid = torch.cat((x1_grid.reshape(-1, 1), x2_grid.reshape(-1, 1)), dim=1)
-    #
-    #         if self.u_true is not None:
-    #             plt.subplot(1, 3, 1)
-    #             plt.contourf(x1_grid, x2_grid, self.u_true(x_grid).reshape(x1_grid.shape))
-    #             plt.xlabel('x1')
-    #             plt.ylabel('x2')
-    #             plt.colorbar()
-    #             plt.title('true')
-    #
-    #             plt.subplot(1, 3, 2)
-    #             plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-    #             plt.xlabel('x1')
-    #             plt.ylabel('x2')
-    #             plt.colorbar()
-    #             plt.title('approx')
-    #
-    #             plt.subplot(1, 3, 3)
-    #             plt.contourf(x1_grid, x2_grid, torch.abs(net(x_grid).reshape(-1) - self.u_true(x_grid).reshape(-1)).reshape(x1_grid.shape))
-    #             plt.xlabel('x1')
-    #             plt.ylabel('x2')
-    #             plt.colorbar()
-    #             plt.title('abs. diff.')
-    #         else:
-    #             plt.contourf(x1_grid, x2_grid, net(x_grid).reshape(x1_grid.shape))
-    #             plt.xlabel('x1')
-    #             plt.ylabel('x2')
-    #             plt.colorbar()
-    #             plt.title('approx')
 
-
-def pde_libraryPoisson2D(fctn_num=0):
+def pde_library_Poisson2D(fctn_num=0):
 
     if fctn_num == 0:
         a, b = 2.0, 4.0
