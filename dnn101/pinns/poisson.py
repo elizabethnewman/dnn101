@@ -17,7 +17,9 @@ class PoissonEquation2DPINN(torch.nn.Module):
         super(PoissonEquation2DPINN, self).__init__()
         self.net = net
 
-    def forward(self, xy_int, f, xy_bd, g):
+    def forward(self, data):
+        (xy_int, f), (xy_bd, g) = data
+
         # number of interior and boundary points
         n_int = xy_int.shape[0]
         n_bd = xy_bd.shape[0]

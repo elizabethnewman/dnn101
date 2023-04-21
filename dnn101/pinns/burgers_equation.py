@@ -19,7 +19,9 @@ class BurgersEquation1DPINN(HeatEquation1DPINN):
         super(BurgersEquation1DPINN, self).__init__(net)
         self.c = torch.nn.Parameter(torch.tensor(1))
 
-    def forward(self, xt_int, f, xt_init, g, xt_bound, b):
+    def forward(self, data):
+        (xt_int, f), (xt_init, g), (xt_bound, b) = data
+
         # evaluate initial condition
         n_init = xt_init.shape[0]
         pred_init = self.net(xt_init)
